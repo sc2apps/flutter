@@ -140,12 +140,35 @@ class _MatchesState extends State<Matches> {
             .join(':'));
   }
 
+  DateTime safeParseDate(dynamic date) {
+    return switch (date) {
+      Timestamp() => date.toDate(),
+      String() => DateTime.parse(date),
+      _ => DateTime.now()
+    }
+        .toLocal();
+  }
+
+  double eloAfter(Map<String, dynamic> match, bool winner) {
+    final key = winner ? 'winnerMMR' : 'looserMMR';
+    final changeKey = winner ? 'wonElo' : 'lostElo';
+
+    final change = switch (match[changeKey]) {
+      String() => int.parse(match[changeKey]),
+      num() => match[changeKey],
+      _ => winner ? 1 : -1
+    };
+    return (match[key] ?? 2500) + change;
+  }
+
   Widget _buildMatchRow(BuildContext context, Map<String, dynamic> match) {
     final winners = playersFor(match: match, winners: true);
     final loosers = playersFor(match: match, winners: false);
-    final time = DateTime.parse(match['createdAt']).toLocal();
-    final duration = DateTime.parse(match['match']['completedAt'])
-        .difference(DateTime.parse(match['closedAt']));
+
+    final time = safeParseDate(match['createdAt']);
+
+    final duration = safeParseDate(match['match']['completedAt'])
+        .difference(safeParseDate(match['closedAt']));
 
     return Align(
       alignment: Alignment.centerLeft,
@@ -164,7 +187,11 @@ class _MatchesState extends State<Matches> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(match['map']['name']),
+                        Text(
+                          match['map'] is String
+                              ? match['map']
+                              : match['map']['name'],
+                        ),
                         Text(
                           dateFormatter.format(time),
                           style: TextStyle(
@@ -185,13 +212,13 @@ class _MatchesState extends State<Matches> {
                       children: [
                         _buildPlayerDetails(
                           winners,
-                          elo: match['winnerMMR'] ?? 2500,
+                          elo: eloAfter(match, true),
                           eloChange: match['wonElo'] ?? 1,
                         ),
                         const Text('vs'),
                         _buildPlayerDetails(
                           loosers,
-                          elo: match['looserMMR'] ?? 2500,
+                          elo: eloAfter(match, false),
                           eloChange: match['lostElo'] ?? -1,
                           alignment: CrossAxisAlignment.end,
                         ),

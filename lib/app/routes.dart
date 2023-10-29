@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sc2_leaderboards/leaderboards/pages/leaderboard.dart';
 import 'package:sc2_leaderboards/leaderboards/pages/matches.dart';
@@ -21,6 +22,7 @@ final router = GoRouter(
           builder: (context, state) {
             final profile = state.pathParameters['profileId']!;
             return Matches(
+              key: ValueKey("matches/$profile"),
               playerId: profile,
             );
           },

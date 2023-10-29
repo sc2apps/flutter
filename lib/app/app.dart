@@ -9,6 +9,7 @@ class SCLeaderboardsApp extends StatelessWidget {
     return MaterialApp.router(
       darkTheme: ThemeData(
         colorScheme: const ColorScheme.dark(),
+        fontFamily: 'Michroma',
       ),
       themeMode: ThemeMode.dark,
       routerConfig: router,
